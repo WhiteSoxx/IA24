@@ -3,8 +3,8 @@
 # Além das funções e classes sugeridas, podem acrescentar outras que considerem pertinentes.
 
 # Grupo 00:
-# 00000 Nome1
-# 00000 Nome2
+# 00000 Gabriel Bispo
+# 106326 Guilherme Filipe
 
 import sys
 from search import (
@@ -16,6 +16,7 @@ from search import (
     greedy_search,
     recursive_best_first_search,
 )
+from sys import stdin
 
 
 class PipeManiaState:
@@ -34,23 +35,29 @@ class PipeManiaState:
 
 class Board:
     """Representação interna de um tabuleiro de PipeMania."""
+    board = []; # Game Board
 
     def get_value(self, row: int, col: int) -> str:
         """Devolve o valor na respetiva posição do tabuleiro."""
-        # TODO
-        pass
+        v = self.board[row][col]
+        if row < 0 or row >= len(self.board) or col < 0 or col >= len(self.board[0]):
+            return None
+        else:
+            return self.board[row][col]
 
     def adjacent_vertical_values(self, row: int, col: int) -> (str, str):
         """Devolve os valores imediatamente acima e abaixo,
         respectivamente."""
-        # TODO
-        pass
+        v1 = self.get_value(row - 1, col)
+        v2 = self.get_value(row + 1, col)
+        return (v1, v2)
 
     def adjacent_horizontal_values(self, row: int, col: int) -> (str, str):
         """Devolve os valores imediatamente à esquerda e à direita,
         respectivamente."""
-        # TODO
-        pass
+        v1 = self.get_value(row, col - 1)
+        v2 = self.get_value(row, col + 1)
+        return (v1, v2)
 
     @staticmethod
     def parse_instance():
@@ -64,7 +71,12 @@ class Board:
             > line = stdin.readline().split()
         """
         # TODO
-        pass
+        board = list()
+        line = stdin.readline().split()
+        while(line != []):
+            board.append(line)
+            line = stdin.readline().split()
+        return board
 
     # TODO: outros metodos da classe
 
@@ -110,4 +122,9 @@ if __name__ == "__main__":
     # Usar uma técnica de procura para resolver a instância,
     # Retirar a solução a partir do nó resultante,
     # Imprimir para o standard output no formato indicado.
+    
+    game = Board()
+    game.board = game.parse_instance()
+
+    
     pass
