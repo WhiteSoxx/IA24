@@ -33,11 +33,153 @@ class PipeManiaState:
     # TODO: outros metodos da classe
 
 
+class Piece:
+    connects_to = []
+    exits  = []
+    """Representação interna de uma peça do PipeMania."""
+    def __init__(self, value: str):
+        self.value = value
+
+    def rotate(self, clockwise: bool):
+        """Roda a peça 90° no sentido dos ponteiros do relógio se
+        'clockwise' for True, caso contrário, no sentido contrário."""
+        # TODO
+        pass
+    
+    def set_exits(self):
+        pass
+
+    def __str__(self):
+        return self.value
+    
+class F_Piece(Piece):
+    def __init__(self, value: str):
+        super().__init__(value)
+        self.set_exits()
+        
+    def set_exits(self):
+        self.exits = [self.value[1]]
+        
+    def rotate(self, clockwise: bool):
+        if clockwise:
+            if self.value == "FC":
+                self.value = "FD"
+            elif self.value == "FD":
+                self.value = "FB"
+            elif self.value == "FB":
+                self.value = "FE"
+            elif self.value == "FE":
+                self.value = "FC"
+        else:
+            if self.value == "FC":
+                self.value = "FE"
+            elif self.value == "FD":
+                self.value = "FC"
+            elif self.value == "FB":
+                self.value = "FD"
+            elif self.value == "FE":
+                self.value = "FB"
+
+        self.set_exits()
+    
+class B_Piece(Piece):
+    def __init__(self, value: str):
+        super().__init__(value)
+        self.set_exits()
+        
+    def set_exits(self):
+        if self.value[1] == "C":
+            self.exits = ["E", "C", "D"]
+        elif self.value[1] == "D":
+            self.exits = ["C", "D", "B"]
+        elif self.value[1] == "B":
+            self.exits = ["E", "B", "D"]
+        elif self.value[1] == "E":
+            self.exits = ["C", "E", "B"]
+
+    def rotate(self, clockwise: bool):
+        if clockwise:
+            if self.value == "BC":
+                self.value = "BD"
+            elif self.value == "BD":
+                self.value = "BB"
+            elif self.value == "BB":
+                self.value = "BE"
+            elif self.value == "BE":
+                self.value = "BC"
+        else:
+            if self.value == "BC":
+                self.value = "BE"
+            elif self.value == "BD":
+                self.value = "BC"
+            elif self.value == "BB":
+                self.value = "BD"
+            elif self.value == "BE":
+                self.value = "BB"
+
+        self.set_exits()
+        
+class V_Piece(Piece):
+    def __init__(self, value: str):
+        super().__init__(value)
+        self.set_exits()
+        
+    def set_exits(self):
+        if self.value == "VC":
+            self.exits = ["E", "C"]
+        elif self.value == "VD":
+            self.exits = ["C", "D"]
+        elif self.value == "VB":
+            self.exits = ["B", "D"]
+        elif self.value == "VE":
+            self.exits = ["E", "B"]
+
+    def rotate(self, clockwise: bool):
+        if clockwise:
+            if self.value == "VC":
+                self.value = "VD"
+            elif self.value == "VD":
+                self.value = "VB"
+            elif self.value == "VB":
+                self.value = "VE"
+            elif self.value == "VE":
+                self.value = "VC"
+        else:
+            if self.value == "VC":
+                self.value = "VE"
+            elif self.value == "VD":
+                self.value = "VC"
+            elif self.value == "VB":
+                self.value = "VD"
+            elif self.value == "VE":
+                self.value = "VB"
+
+        self.set_exits()
+
+class L_Piece(Piece):
+    def __init__(self, value: str):
+        super().__init__(value)
+        self.set_exits()
+        
+    def set_exits(self):
+        if self.value == "LH":
+            self.exits = ["E", "D"]
+        elif self.value == "LV":
+            self.exits = ["C", "B"]
+            
+    def rotate(self):
+        if self.value == "LH":
+            self.value = "LV"
+        elif self.value == "LV":
+            self.value = "LH"
+            
+        self.set_exits()
+
 class Board:
     """Representação interna de um tabuleiro de PipeMania."""
     board = []; # Game Board
 
-    def get_value(self, row: int, col: int) -> str:
+    def get_value(self, row: int, col: int) -> Piece:
         """Devolve o valor na respetiva posição do tabuleiro."""
         v = self.board[row][col]
         if row < 0 or row >= len(self.board) or col < 0 or col >= len(self.board[0]):
@@ -46,11 +188,11 @@ class Board:
             return self.board[row][col]
         
     #implementada por nós, podemos?
-    def set_value(self, row: int, col: int, value: str):
+    def set_value(self, row: int, col: int, value: Piece):
         """Altera o valor na respetiva posição do tabuleiro."""
         self.board[row][col] = value
         
-    def action(self, action: tuple) -> str:
+    def action(self, action: tuple) -> None:
         value = self.get_value(action[0], action[1])
         orientation = action[2]
         
@@ -60,73 +202,21 @@ class Board:
         
         #podemos usar match? (um switch para strings)
         if value == "None":
-            return "None"
-        elif value == "FC":
-            if orientation == True:
-                value = "FD"
-            elif orientation == False: #apenas por uma questão de clareza, else funcionava bem
-                value = "FE"
-        elif value == "FB":
-            if orientation == True:
-                value = "FE"
-            elif orientation == False:
-                value = "FD"
-        elif value == "FE":
-            if orientation == True:
-                value = "FC"
-            elif orientation == False:
-                value = "FB"
-        elif value == "FD":
-            if orientation == True:
-                value = "FB"
-            elif orientation == False:
-                value = "FC"
-        elif value == "BC":
-            if orientation == True:
-                value = "BD"
-            elif orientation == False:
-                value = "BE"
-        elif value == "BB":
-            if orientation == True:
-                value = "BE"
-            elif orientation == False:
-                value = "BD"
-        elif value == "BE":
-            if orientation == True:
-                value = "BC"
-            elif orientation == False:
-                value = "BB"
-        elif value == "BD":
-            if orientation == True:
-                value = "BB"
-            elif orientation == False:
-                value = "BC"
-        elif value == "VC":
-            if orientation == True:
-                value = "VD"
-            elif orientation == False:
-                value = "VE"
-        elif value == "VB":
-            if orientation == True:
-                value = "VE"
-            elif orientation == False:
-                value = "VD"
-        elif value == "VE":
-            if orientation == True:
-                value = "VC"
-            elif orientation == False:
-                value = "VB"
-        elif value == "VD":
-            if orientation == True:
-                value = "VB"
-            elif orientation == False:
-                value = "VC"
-        elif value == "LH":
-            value = "LV"
-        elif value == "LV":
-            value = "LH"
+            return
+        elif isinstance(value, F_Piece):
+            value.rotate(orientation)
+            return
+        elif(isinstance(value, B_Piece)):
+            value.rotate(orientation)
+            return
+        elif(isinstance(value, V_Piece)):
+            value.rotate(orientation)
+            return
+        elif(isinstance(value, L_Piece)):
+            value.rotate()
+            return
             
-        return value
+        return
         
 
     def adjacent_vertical_values(self, row: int, col: int) -> (str, str):
@@ -158,7 +248,18 @@ class Board:
         board = list()
         line = stdin.readline().split()
         while(line != []):
-            board.append(line)
+            new_line = list()
+            for i in range(len(line)):
+                if(line[i][0] == "F"):
+                    v = F_Piece(line[i])
+                elif(line[i][0] == "B"):
+                    v = B_Piece(line[i])
+                elif(line[i][0] == "V"):
+                    v = V_Piece(line[i])
+                elif(line[i][0] == "L"):
+                    v = L_Piece(line[i])
+                new_line.append(v)
+            board.append(new_line)
             line = stdin.readline().split()
         return board
 
@@ -187,8 +288,8 @@ class PipeMania(Problem):
         self.actions(state)."""
         # TODO
         
-        state.board.set_value(action[0], action[1], self.current.board.action(action))
         new_state = PipeManiaState(state.board)
+        new_state.board.action(action)
         return new_state
         
 
