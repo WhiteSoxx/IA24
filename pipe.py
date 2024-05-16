@@ -23,6 +23,7 @@ class PipeManiaState:
     state_id = 0
 
     def __init__(self, board):
+        
         self.board = board
         self.id = PipeManiaState.state_id
         PipeManiaState.state_id += 1
@@ -181,7 +182,6 @@ class Board:
 
     def get_value(self, row: int, col: int) -> Piece:
         """Devolve o valor na respetiva posição do tabuleiro."""
-        v = self.board[row][col]
         if row < 0 or row >= len(self.board) or col < 0 or col >= len(self.board[0]):
             return None
         else:
@@ -261,7 +261,18 @@ class Board:
                 new_line.append(v)
             board.append(new_line)
             line = stdin.readline().split()
-        return board
+        
+        new_board = Board()
+        new_board.board = board
+        return new_board
+    
+    def print(self):
+        s = ""
+        for i in range(len(self.board)):
+            for j in range(len(self.board[i])):
+                s += self.board[i][j].value + "\t"
+            s += "\n"
+        return s
 
     # TODO: outros metodos da classe
 
@@ -288,8 +299,30 @@ class PipeMania(Problem):
         self.actions(state)."""
         # TODO
         
-        new_state = PipeManiaState(state.board)
+        board = list()
+        
+        for i in range(len(state.board.board)):
+            new_line = list()
+            for j in range(len(state.board.board[i])):
+                k = state.board.get_value(i, j).value
+                if(k[0] == "F"):
+                    v = F_Piece(k)
+                elif(k[0] == "B"):
+                    v = B_Piece(k)
+                elif(k[0] == "V"):
+                    v = V_Piece(k)
+                elif(k[0] == "L"):
+                    v = L_Piece(k)
+                new_line.append(v)
+            board.append(new_line)
+        
+        new_board = Board()
+        new_board.board = board
+        
+        new_state = PipeManiaState(new_board)
         new_state.board.action(action)
+        
+        self.current = new_state
         return new_state
         
 
@@ -298,7 +331,32 @@ class PipeMania(Problem):
         um estado objetivo. Deve verificar se todas as posições do tabuleiro
         estão preenchidas de acordo com as regras do problema."""
         # TODO
-        pass
+        
+        for i in range(len(state.board.board)):
+            for j in range(len(state.board.board[i])):
+                testing = state.board.get_value(i, j) #getvalue?
+                for k in range(len(testing.exits)):
+                    if(testing.exits[k] == "C"):
+                        if(state.board.get_value(i - 1, j) == None):
+                            return False
+                        elif("B" not in state.board.get_value(i - 1, j).exits):
+                            return False
+                    elif(testing.exits[k] == "D"):
+                        if(state.board.get_value(i, j + 1) == None):
+                            return False
+                        elif("E" not in state.board.get_value(i, j + 1).exits):
+                            return False
+                    elif(testing.exits[k] == "B"):
+                        if(state.board.get_value(i + 1, j) == None):
+                            return False
+                        elif("C" not in state.board.get_value(i + 1, j).exits):
+                            return False
+                    elif(testing.exits[k] == "E"):
+                        if(state.board.get_value(i, j - 1) == None):
+                            return False
+                        elif("D" not in state.board.get_value(i, j - 1).exits):
+                            return False
+        return True
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
@@ -315,15 +373,28 @@ if __name__ == "__main__":
     # Retirar a solução a partir do nó resultante,
     # Imprimir para o standard output no formato indicado.
     
-    game = Board()
-    game.board = game.parse_instance()
+    # Ler grelha do figura 1a:
+    board = Board.parse_instance()
+    # Criar uma instância de PipeMania:
+    problem = PipeMania(board)
+    # Criar um estado com a configuração inicial:
+    s0 = PipeManiaState(board)
+    # Aplicar as ações que resolvem a instância
+    s1 = problem.result(s0, (0, 1, True))
+    s2 = problem.result(s1, (0, 1, True))
+    s3 = problem.result(s2, (0, 2, True))
+    s4 = problem.result(s3, (0, 2, True))
+    s5 = problem.result(s4, (1, 0, True))
+    print("Is goal?", problem.goal_test(s5))
+    s6 = problem.result(s5, (1, 1, True))
+    s7 = problem.result(s6, (2, 0, False)) # anti-clockwise (exemplo de uso)
+    s8 = problem.result(s7, (2, 0, False)) # anti-clockwise (exemplo de uso)
+    s9 = problem.result(s8, (2, 1, True))
+    s10 = problem.result(s9, (2, 1, True))
+    s11 = problem.result(s10, (2, 2, True))
+    # Verificar se foi atingida a solução
 
-    problem = PipeMania(game)
-    initial_state = PipeManiaState(game)
-    print(initial_state.board.get_value(2, 2))
-    # Realizar ação de rodar 90° clockwise a peça (2, 2)
-    result_state = problem.result(initial_state, (2, 2, True))
-    # Mostrar valor na posição (2, 2):
-    print(result_state.board.get_value(2, 2))
+    print("Is goal?", problem.goal_test(s11))
+    print("Solution:\n", s11.board.print(), sep="")
     
     pass
