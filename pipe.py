@@ -36,6 +36,7 @@ class PipeManiaState:
 
 
 class Piece:
+    possible_positions = []
 
     """Representação interna de uma peça do PipeMania."""
     def __init__(self, value: str):
@@ -55,6 +56,9 @@ class Piece:
     def rotate180(self):
         pass
 
+    def transform(self, new_value):
+        pass
+
     def __str__(self):
         return self.value
     
@@ -62,10 +66,12 @@ class F_Piece(Piece):
     def __init__(self, value: str):
         super().__init__(value)
         self.set_exits()
+        self.possible_positions = ["FC", "FD", "FB", "FE"]
         
     def set_exits(self):
         self.exits = [self.value[1]]
         
+    #mudar
     def rotate(self, clockwise: bool):
         if clockwise:
             if self.value == "FC":
@@ -98,11 +104,19 @@ class F_Piece(Piece):
         elif self.value == "FE":
                 self.value = "FD"
         self.set_exits()
+        
+    def transform(self, new_value):
+        if len(self.possible_positions) > 0:
+            self.possible_positions.remove(new_value)
+            
+            self.value = new_value
+            self.set_exits()
     
 class B_Piece(Piece):
     def __init__(self, value: str):
         super().__init__(value)
         self.set_exits()
+        self.possible_positions = ["BC", "BD", "BB", "BE"]
         
     def set_exits(self):
         if self.value[1] == "C":
@@ -147,10 +161,18 @@ class B_Piece(Piece):
                 self.value = "BD"
         self.set_exits()
         
+    def transform(self, new_value):
+        if len(self.possible_positions) > 0:
+            self.possible_positions.remove(new_value)
+            
+            self.value = new_value
+            self.set_exits()
+        
 class V_Piece(Piece):
     def __init__(self, value: str):
         super().__init__(value)
         self.set_exits()
+        self.possible_positions = ["VC", "VD", "VB", "VE"]
         
     def set_exits(self):
         if self.value == "VC":
@@ -162,28 +184,7 @@ class V_Piece(Piece):
         elif self.value == "VE":
             self.exits = ["E", "B"]
 
-    def rotate(self, clockwise: bool):
-        if clockwise:
-            if self.value == "VC":
-                self.value = "VD"
-            elif self.value == "VD":
-                self.value = "VB"
-            elif self.value == "VB":
-                self.value = "VE"
-            elif self.value == "VE":
-                self.value = "VC"
-        else:
-            if self.value == "VC":
-                self.value = "VE"
-            elif self.value == "VD":
-                self.value = "VC"
-            elif self.value == "VB":
-                self.value = "VD"
-            elif self.value == "VE":
-                self.value = "VB"
-
-        self.set_exits()
-
+    
     def rotate180(self):
         if self.value == "VC":
                 self.value = "VB"
@@ -194,19 +195,27 @@ class V_Piece(Piece):
         elif self.value == "VE":
                 self.value = "VD"
         self.exits
+        
+    def transform(self, new_value):
+        if len(self.possible_positions) > 0:
+            self.possible_positions.remove(new_value)
+            
+            self.value = new_value
+            self.set_exits()
     
 class L_Piece(Piece):
     def __init__(self, value: str):
         super().__init__(value)
         self.set_exits()
         self.rotations = 1
+        self.possible_positions = ["LH", "LV"]
         
     def set_exits(self):
         if self.value == "LH":
             self.exits = ["E", "D"]
         elif self.value == "LV":
             self.exits = ["C", "B"]
-            
+    
     def rotate(self):
         if self.value == "LH":
             self.value = "LV"
@@ -216,9 +225,15 @@ class L_Piece(Piece):
     
     def rotate180(self):
         pass
+    
+    def transform(self, new_value):
+        if len(self.possible_positions) > 0:
+            self.possible_positions.remove(new_value)
+            
+            self.value = new_value
+            self.set_exits()
             
         
-
 class Board:
     """Representação interna de um tabuleiro de PipeMania."""
     board = []; # Game Board
@@ -237,14 +252,16 @@ class Board:
         
     def action(self, action: tuple) -> None:
         value = self.get_value(action[0], action[1])
-        orientation = action[2]
-        double = action[3]
+    
+        #action = (row, col)
+        if value == None:
+            return
 
-        #action = (row, col, orientation, double)
-        #orientation = True -> clockwise
-        #orientation = False -> counter-clockwise
+        else:
+            value.transform(action[2])
+            value.rotations -= 1
+        return
         
-        #podemos usar match? (um switch para strings)
         if double == False:
             if value == "None":
                 return
@@ -264,6 +281,8 @@ class Board:
         if double ==True:
             value.rotate180()
             return
+        
+
         return
         
 
@@ -333,23 +352,111 @@ class PipeMania(Problem):
         self.initial = PipeManiaState(board)
         self.goal = None
         self.current = self.initial
+        
+    def border_pieces(self, board: Board):
+        limit = len(board.board)
+        for i in range(limit):
+            for j in range(limit):
+                #canto
+                border_piece = board.get_value(i, j)
+                if i == 0 and j == 0:
+                    if isinstance(border_piece, F_Piece):
+                        border_piece.possible_positions = ["FD", "FB"]
+                    elif isinstance(border_piece, V_Piece):
+                        border_piece.possible_positions = ["VB"]
+                        border_piece.transform("VB")
+                
+                elif i == 0 and j == limit - 1:
+                    if isinstance(border_piece, F_Piece):
+                        border_piece.possible_positions = ["FE", "FB"]
+                    elif isinstance(border_piece, V_Piece):
+                        border_piece.possible_positions = ["VE"]
+                        border_piece.transform("VE")
+                
+                elif i == limit - 1 and j == 0:
+                    if isinstance(border_piece, F_Piece):
+                        border_piece.possible_positions = ["FD", "FC"]
+                    elif isinstance(border_piece, V_Piece):
+                        border_piece.possible_positions = ["VD"]
+                        border_piece.transform("VD")
+                    
+                elif i == limit - 1 and j == limit - 1:
+                    if isinstance(border_piece, F_Piece):
+                        border_piece.possible_positions = ["FE", "FC"]
+                    elif isinstance(border_piece, V_Piece):
+                        border_piece.possible_positions = ["VC"]
+                        border_piece.transform("VC")
+                
+                #bordas  
+                elif i == 0: # borda superior
+                    if isinstance(border_piece, L_Piece):
+                        border_piece.possible_positions = ["LH"]
+                        border_piece.transform("LH")
+                    elif isinstance(border_piece, B_Piece):
+                        border_piece.possible_positions = ["BB"]
+                        border_piece.transform("BB")
+                    
+                    elif isinstance(border_piece, V_Piece):
+                        border_piece.possible_positions = ["VB", "VE"]
+                    elif isinstance(border_piece, F_Piece):
+                        border_piece.possible_positions = ["FB", "FE", "FD"]
+
+                
+                elif j == 0: #borda esquerda
+                    if isinstance(border_piece, L_Piece):
+                        border_piece.possible_positions = ["LV"]
+                        border_piece.transform("LV")
+                    elif isinstance(border_piece, B_Piece):
+                        border_piece.possible_positions = ["BD"]
+                        border_piece.transform("BD")
+
+                    elif isinstance(border_piece, V_Piece):
+                        border_piece.possible_positions = ["VB", "VD"]
+                    elif isinstance(border_piece, F_Piece):
+                        border_piece.possible_positions = ["FC", "FB", "FD"]
+                
+                elif i == limit - 1: #borda inferior
+                    if isinstance(border_piece, L_Piece):
+                        border_piece.possible_positions = ["LH"]
+                        border_piece.transform("LH")
+                    elif isinstance(border_piece, B_Piece):
+                        border_piece.possible_positions = ["BC"]
+                        border_piece.transform("BC")
+                
+                    elif isinstance(border_piece, V_Piece):
+                        border_piece.possible_positions = ["VC", "VD"]
+                    elif isinstance(border_piece, F_Piece):
+                        border_piece.possible_positions = ["FC", "FE", "FD"]
+                        
+                elif j == limit - 1: #borda direita
+                    if isinstance(border_piece, L_Piece):
+                        border_piece.possible_positions = ["LV"]
+                        border_piece.transform("LV")
+                    elif isinstance(border_piece, B_Piece):
+                        border_piece.possible_positions = ["BE"]
+                        border_piece.transform("BE")
+                    elif isinstance(border_piece, V_Piece):
+                        border_piece.possible_positions = ["VC", "VE"]
+                    elif isinstance(border_piece, F_Piece):
+                        border_piece.possible_positions = ["FC", "FB", "FE"]
+                    
 
     def actions(self, state: PipeManiaState):
         """Retorna uma lista de ações que podem ser executadas a
         partir do estado passado como argumento."""
         board = state.board
         dim = len(board.board)
+        
+        self.border_pieces(board)
+        
         actions = []
         for row in range(dim):
             for column in range(dim):
                 piece = board.get_value(row,column)
-                if not piece.rotations <= 0:
-                    print("Peça: ", row, column)
-                    piece.rotations = piece.rotations - 3
-                    print("Rotações restantes: ", piece.rotations)
-                    actions.append((row, column, True, False))
-                    actions.append((row, column, False, False))
-                    actions.append((row, column, True, True)) #180º
+                if len(piece.possible_positions) > 0:
+                    for i in piece.possible_positions:
+                        actions.append((row, column, i))
+                    
 
                     return actions
         return actions
@@ -377,6 +484,11 @@ class PipeMania(Problem):
                 elif(k[0] == "L"):
                     v = L_Piece(k)
                 v.rotations = state.board.board[i][j].rotations
+                
+                new_possible_positions = list()
+                for l in state.board.board[i][j].possible_positions:
+                    new_possible_positions.append(l)
+                v.possible_positions = new_possible_positions
                 new_line.append(v)
             board.append(new_line)
         
