@@ -106,10 +106,10 @@ class F_Piece(Piece):
         self.set_exits()
         
     def transform(self, new_value):
-        if len(self.possible_positions) > 0:
-            self.possible_positions.remove(new_value)
+        if len(self.possible_positions) >= 0:
             
             self.value = new_value
+            print("Valor mudado para:", new_value)
             self.set_exits()
     
 class B_Piece(Piece):
@@ -453,11 +453,14 @@ class PipeMania(Problem):
         for row in range(dim):
             for column in range(dim):
                 piece = board.get_value(row,column)
+                print("Tamanho actions:", len(piece.possible_positions))
                 if len(piece.possible_positions) > 0:
                     for i in piece.possible_positions:
                         actions.append((row, column, i))
+                        print(i)
                     
-
+                    print("AÇÃO, PEÇA:", row, column)
+                    time.sleep(1)
                     return actions
         return actions
                     
@@ -468,7 +471,7 @@ class PipeMania(Problem):
         das presentes na lista obtida pela execução de
         self.actions(state)."""
         # TODO
-        
+        (row, column, value) = action
         board = list()
         
         for i in range(len(state.board.board)):
@@ -483,21 +486,24 @@ class PipeMania(Problem):
                     v = V_Piece(k)
                 elif(k[0] == "L"):
                     v = L_Piece(k)
-                v.rotations = state.board.board[i][j].rotations
                 
                 new_possible_positions = list()
+                
                 for l in state.board.board[i][j].possible_positions:
                     new_possible_positions.append(l)
                 v.possible_positions = new_possible_positions
                 new_line.append(v)
             board.append(new_line)
+
+        board[row][column].possible_positions = list()
         
         new_board = Board()
         new_board.board = board
         
         new_state = PipeManiaState(new_board)
         new_state.board.action(action)
-
+        print("(0,0): ", board[0][0])
+        print("Peça: ", row, column, "com valor: ", value, "e tamanho:", len(new_state.board.board[row][column].possible_positions))
         self.current = new_state
         return new_state
         
