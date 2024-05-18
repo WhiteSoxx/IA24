@@ -7,6 +7,7 @@
 # 106326 Guilherme Filipe
 
 import sys
+import time
 from search import (
     Problem,
     Node,
@@ -35,11 +36,12 @@ class PipeManiaState:
 
 
 class Piece:
-    connects_to = []
-    exits  = []
+
     """Representação interna de uma peça do PipeMania."""
     def __init__(self, value: str):
         self.value = value
+        self.exits = []
+        self.rotations = 3
 
     def rotate(self, clockwise: bool):
         """Roda a peça 90° no sentido dos ponteiros do relógio se
@@ -48,6 +50,9 @@ class Piece:
         pass
     
     def set_exits(self):
+        pass
+
+    def rotate180(self):
         pass
 
     def __str__(self):
@@ -81,6 +86,17 @@ class F_Piece(Piece):
             elif self.value == "FE":
                 self.value = "FB"
 
+        self.set_exits()
+
+    def rotate180(self):
+        if self.value == "FC":
+                self.value = "FB"
+        elif self.value == "FD":
+                self.value = "FE"
+        elif self.value == "FB":
+                self.value = "FC"
+        elif self.value == "FE":
+                self.value = "FD"
         self.set_exits()
     
 class B_Piece(Piece):
@@ -117,7 +133,18 @@ class B_Piece(Piece):
                 self.value = "BD"
             elif self.value == "BE":
                 self.value = "BB"
+        
+        self.set_exits()
 
+    def rotate180(self):
+        if self.value == "BC":
+                self.value = "BB"
+        elif self.value == "BD":
+                self.value = "BE"
+        elif self.value == "BB":
+                self.value = "BC"
+        elif self.value == "BE":
+                self.value = "BD"
         self.set_exits()
         
 class V_Piece(Piece):
@@ -157,10 +184,22 @@ class V_Piece(Piece):
 
         self.set_exits()
 
+    def rotate180(self):
+        if self.value == "VC":
+                self.value = "VB"
+        elif self.value == "VD":
+                self.value = "VE"
+        elif self.value == "VB":
+                self.value = "VC"
+        elif self.value == "VE":
+                self.value = "VD"
+        self.exits
+    
 class L_Piece(Piece):
     def __init__(self, value: str):
         super().__init__(value)
         self.set_exits()
+        self.rotations = 1
         
     def set_exits(self):
         if self.value == "LH":
@@ -173,8 +212,12 @@ class L_Piece(Piece):
             self.value = "LV"
         elif self.value == "LV":
             self.value = "LH"
-            
         self.set_exits()
+    
+    def rotate180(self):
+        pass
+            
+        
 
 class Board:
     """Representação interna de um tabuleiro de PipeMania."""
@@ -195,27 +238,32 @@ class Board:
     def action(self, action: tuple) -> None:
         value = self.get_value(action[0], action[1])
         orientation = action[2]
-        
-        #action = (row, col, orientation)
+        double = action[3]
+
+        #action = (row, col, orientation, double)
         #orientation = True -> clockwise
         #orientation = False -> counter-clockwise
         
         #podemos usar match? (um switch para strings)
-        if value == "None":
+        if double == False:
+            if value == "None":
+                return
+            elif isinstance(value, F_Piece):
+                value.rotate(orientation)
+                return
+            elif(isinstance(value, B_Piece)):
+                value.rotate(orientation)
+                return
+            elif(isinstance(value, V_Piece)):
+                value.rotate(orientation)
+                return
+            elif(isinstance(value, L_Piece)):
+                value.rotate()
+                return
+        
+        if double ==True:
+            value.rotate180()
             return
-        elif isinstance(value, F_Piece):
-            value.rotate(orientation)
-            return
-        elif(isinstance(value, B_Piece)):
-            value.rotate(orientation)
-            return
-        elif(isinstance(value, V_Piece)):
-            value.rotate(orientation)
-            return
-        elif(isinstance(value, L_Piece)):
-            value.rotate()
-            return
-            
         return
         
 
@@ -289,8 +337,23 @@ class PipeMania(Problem):
     def actions(self, state: PipeManiaState):
         """Retorna uma lista de ações que podem ser executadas a
         partir do estado passado como argumento."""
-        # TODO
-        pass
+        board = state.board
+        dim = len(board.board)
+        actions = []
+        for row in range(dim):
+            for column in range(dim):
+                piece = board.get_value(row,column)
+                if not piece.rotations <= 0:
+                    print("Peça: ", row, column)
+                    piece.rotations = piece.rotations - 3
+                    print("Rotações restantes: ", piece.rotations)
+                    actions.append((row, column, True, False))
+                    actions.append((row, column, False, False))
+                    actions.append((row, column, True, True)) #180º
+
+                    return actions
+        return actions
+                    
 
     def result(self, state: PipeManiaState, action):
         """Retorna o estado resultante de executar a 'action' sobre
@@ -313,6 +376,7 @@ class PipeMania(Problem):
                     v = V_Piece(k)
                 elif(k[0] == "L"):
                     v = L_Piece(k)
+                v.rotations = state.board.board[i][j].rotations
                 new_line.append(v)
             board.append(new_line)
         
@@ -321,7 +385,7 @@ class PipeMania(Problem):
         
         new_state = PipeManiaState(new_board)
         new_state.board.action(action)
-        
+
         self.current = new_state
         return new_state
         
@@ -331,7 +395,8 @@ class PipeMania(Problem):
         um estado objetivo. Deve verificar se todas as posições do tabuleiro
         estão preenchidas de acordo com as regras do problema."""
         # TODO
-        
+        print("Estadoo: ", state.id)
+
         for i in range(len(state.board.board)):
             for j in range(len(state.board.board[i])):
                 testing = state.board.get_value(i, j) #getvalue?
@@ -373,28 +438,12 @@ if __name__ == "__main__":
     # Retirar a solução a partir do nó resultante,
     # Imprimir para o standard output no formato indicado.
     
-    # Ler grelha do figura 1a:
     board = Board.parse_instance()
-    # Criar uma instância de PipeMania:
     problem = PipeMania(board)
-    # Criar um estado com a configuração inicial:
-    s0 = PipeManiaState(board)
-    # Aplicar as ações que resolvem a instância
-    s1 = problem.result(s0, (0, 1, True))
-    s2 = problem.result(s1, (0, 1, True))
-    s3 = problem.result(s2, (0, 2, True))
-    s4 = problem.result(s3, (0, 2, True))
-    s5 = problem.result(s4, (1, 0, True))
-    print("Is goal?", problem.goal_test(s5))
-    s6 = problem.result(s5, (1, 1, True))
-    s7 = problem.result(s6, (2, 0, False)) # anti-clockwise (exemplo de uso)
-    s8 = problem.result(s7, (2, 0, False)) # anti-clockwise (exemplo de uso)
-    s9 = problem.result(s8, (2, 1, True))
-    s10 = problem.result(s9, (2, 1, True))
-    s11 = problem.result(s10, (2, 2, True))
-    # Verificar se foi atingida a solução
-
-    print("Is goal?", problem.goal_test(s11))
-    print("Solution:\n", s11.board.print(), sep="")
+    goal_node =  depth_first_tree_search(problem)
+    print("Is goal?", problem.goal_test(goal_node.state))
+    print("State: ", goal_node.state.id)
+    print("Solution:\n", goal_node.state.board.print(), sep="")
+    
     
     pass
