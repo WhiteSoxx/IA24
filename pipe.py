@@ -106,10 +106,8 @@ class F_Piece(Piece):
         self.set_exits()
         
     def transform(self, new_value):
-        if len(self.possible_positions) > 0:
-            self.value = new_value
-            self.possible_positions.remove(new_value)
-            self.set_exits()
+        self.value = new_value
+        self.set_exits()
     
 class B_Piece(Piece):
     def __init__(self, value: str):
@@ -161,10 +159,8 @@ class B_Piece(Piece):
         self.set_exits()
         
     def transform(self, new_value):
-        if len(self.possible_positions) > 0:
-            self.possible_positions.remove(new_value)
-            self.value = new_value
-            self.set_exits()
+        self.value = new_value
+        self.set_exits()
         
 class V_Piece(Piece):
     def __init__(self, value: str):
@@ -195,10 +191,10 @@ class V_Piece(Piece):
         self.exits
         
     def transform(self, new_value):
-        if len(self.possible_positions) > 0:
-            self.possible_positions.remove(new_value)
-            self.value = new_value
-            self.set_exits()
+        #if len(self.possible_positions) > 0:
+            #self.possible_positions.remove(new_value)
+        self.value = new_value
+        self.set_exits()
 
     
 class L_Piece(Piece):
@@ -225,10 +221,8 @@ class L_Piece(Piece):
         pass
     
     def transform(self, new_value):
-        if len(self.possible_positions) > 0:
-            self.possible_positions.remove(new_value)
-            self.value = new_value
-            self.set_exits()
+        self.value = new_value
+        self.set_exits()
 
             
         
@@ -367,6 +361,7 @@ class PipeMania(Problem):
                     elif isinstance(border_piece, V_Piece):
                         border_piece.possible_positions = ["VB"]
                         border_piece.transform("VB")
+                        border_piece.possible_positions.clear()
                 
                 elif i == 0 and j == limit - 1:
                     if isinstance(border_piece, F_Piece):
@@ -374,6 +369,7 @@ class PipeMania(Problem):
                     elif isinstance(border_piece, V_Piece):
                         border_piece.possible_positions = ["VE"]
                         border_piece.transform("VE")
+                        border_piece.possible_positions.clear()
                 
                 elif i == limit - 1 and j == 0:
                     if isinstance(border_piece, F_Piece):
@@ -381,6 +377,7 @@ class PipeMania(Problem):
                     elif isinstance(border_piece, V_Piece):
                         border_piece.possible_positions = ["VD"]
                         border_piece.transform("VD")
+                        border_piece.possible_positions.clear()
                     
                 elif i == limit - 1 and j == limit - 1:
                     if isinstance(border_piece, F_Piece):
@@ -388,15 +385,18 @@ class PipeMania(Problem):
                     elif isinstance(border_piece, V_Piece):
                         border_piece.possible_positions = ["VC"]
                         border_piece.transform("VC")
+                        border_piece.possible_positions.clear()
                 
                 #bordas  
                 elif i == 0: # borda superior
                     if isinstance(border_piece, L_Piece):
                         border_piece.possible_positions = ["LH"]
                         border_piece.transform("LH")
+                        border_piece.possible_positions.clear()
                     elif isinstance(border_piece, B_Piece):
                         border_piece.possible_positions = ["BB"]
                         border_piece.transform("BB")
+                        border_piece.possible_positions.clear()
                     
                     elif isinstance(border_piece, V_Piece):
                         border_piece.possible_positions = ["VB", "VE"]
@@ -408,9 +408,11 @@ class PipeMania(Problem):
                     if isinstance(border_piece, L_Piece):
                         border_piece.possible_positions = ["LV"]
                         border_piece.transform("LV")
+                        border_piece.possible_positions.clear()
                     elif isinstance(border_piece, B_Piece):
                         border_piece.possible_positions = ["BD"]
                         border_piece.transform("BD")
+                        border_piece.possible_positions.clear()
 
                     elif isinstance(border_piece, V_Piece):
                         border_piece.possible_positions = ["VB", "VD"]
@@ -421,9 +423,11 @@ class PipeMania(Problem):
                     if isinstance(border_piece, L_Piece):
                         border_piece.possible_positions = ["LH"]
                         border_piece.transform("LH")
+                        border_piece.possible_positions.clear()
                     elif isinstance(border_piece, B_Piece):
                         border_piece.possible_positions = ["BC"]
                         border_piece.transform("BC")
+                        border_piece.possible_positions.clear()
                 
                     elif isinstance(border_piece, V_Piece):
                         border_piece.possible_positions = ["VC", "VD"]
@@ -434,14 +438,82 @@ class PipeMania(Problem):
                     if isinstance(border_piece, L_Piece):
                         border_piece.possible_positions = ["LV"]
                         border_piece.transform("LV")
+                        border_piece.possible_positions.clear()
                     elif isinstance(border_piece, B_Piece):
                         border_piece.possible_positions = ["BE"]
                         border_piece.transform("BE")
+                        border_piece.possible_positions.clear()
                     elif isinstance(border_piece, V_Piece):
                         border_piece.possible_positions = ["VC", "VE"]
                     elif isinstance(border_piece, F_Piece):
                         border_piece.possible_positions = ["FC", "FB", "FE"]
                     
+
+    def fools_errand(self, board: Board, row: int, col: int):
+        """Verifica se existe alguma fuga entre as peças próximas e as posições
+        possíveis da atual."""
+        
+        piece = board.get_value(row, col)
+        top_piece = board.get_value(row - 1, col)
+        left_piece = board.get_value(row, col - 1)
+        
+        leaking = False
+        
+        #criar uma peça hipotética para verificar exits mais depressa?
+        #pode demorar mais tempo e memória, mesmo com garbage collecting
+        for i in piece.possible_positions:
+            if top_piece != None:
+                if "B" in top_piece.exits:
+                    if i == "FD" or i == "FB" or i == "FE":
+                        leaking = True
+                    elif i == "BB":
+                        leaking = True
+                    elif i == "VB" or i == "VE":
+                        leaking = True
+                    elif i == "LH":
+                        leaking = True
+            if left_piece != None:
+                if "D" in left_piece.exits:
+                    if i == "FB" or i == "FC" or i == "FD":
+                        leaking = True
+                    elif i == "BD":
+                        leaking = True
+                    elif i == "VB" or i == "VD":
+                        leaking = True
+                    elif i == "LV":
+                        leaking = True
+                        
+            #redundante? acho que não é preciso
+            # if left_piece != None and top_piece != None:
+            #     if "D" in left_piece.exits and "B" in top_piece.exits:
+            #         if i == "FB" or i == "FD":
+            #             leaking = True
+            #         elif i == "BB" or i == "BD":
+            #             leaking = True
+            #         elif i == "VB":
+            #             leaking = True
+            #         elif i == "LH" or i == "LV":
+            #             leaking = True
+                
+            if leaking == True:
+                piece.possible_positions.remove(i)
+                leaking = False
+            #começou com algo mas acabou sem, abortar node
+            if piece.possible_positions == []:
+                self.flood(board)
+                    
+                    
+                    
+        
+        return
+    
+    def flood(self, board: Board):
+        """Remove todas as posições possíveis do tabuleiro."""
+        
+        for i in range(len(board.board)):
+            for j in range(len(board.board[i])):
+                board.board[i][j].possible_positions.clear()
+    
 
     def actions(self, state: PipeManiaState):
         """Retorna uma lista de ações que podem ser executadas a
@@ -453,9 +525,12 @@ class PipeMania(Problem):
         for row in range(dim):
             for column in range(dim):
                 piece = board.get_value(row,column)
+                
                 if len(piece.possible_positions) > 0:
+                    self.fools_errand(board, row, column)
                     for i in piece.possible_positions:
-                        actions.append((row, column, i))                    
+                        actions.append((row, column, i))
+                    piece.possible_positions.clear()
                     return actions
         return actions
                     
@@ -481,7 +556,7 @@ class PipeMania(Problem):
                 elif(k[0] == "L"):
                     v = L_Piece(k)
                 
-                new_possible_positions = list()
+                new_possible_positions = []
                 for l in state.board.board[i][j].possible_positions:
                     new_possible_positions.append(l)
                 v.possible_positions = new_possible_positions
@@ -492,7 +567,8 @@ class PipeMania(Problem):
         new_board.board = board
         new_state = PipeManiaState(new_board)
         new_state.board.action(action)
-        new_board.board[row][column].possible_positions.clear()
+        new_state.board.get_value(row, column).possible_positions.clear()
+        
 
         self.current = new_state
         return new_state
@@ -549,7 +625,7 @@ if __name__ == "__main__":
     board = Board.parse_instance()
     problem = PipeMania(board)
     problem.border_pieces(board)
-    goal_node =  depth_first_tree_search(problem)
+    goal_node = depth_first_tree_search(problem)
     print("Is goal?", problem.goal_test(goal_node.state))
     print("State: ", goal_node.state.id)
     print("Solution:\n", goal_node.state.board.print(), sep="")
