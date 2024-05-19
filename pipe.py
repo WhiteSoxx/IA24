@@ -106,10 +106,9 @@ class F_Piece(Piece):
         self.set_exits()
         
     def transform(self, new_value):
-        if len(self.possible_positions) >= 0:
-            
+        if len(self.possible_positions) > 0:
             self.value = new_value
-            print("Valor mudado para:", new_value)
+            self.possible_positions.remove(new_value)
             self.set_exits()
     
 class B_Piece(Piece):
@@ -164,7 +163,6 @@ class B_Piece(Piece):
     def transform(self, new_value):
         if len(self.possible_positions) > 0:
             self.possible_positions.remove(new_value)
-            
             self.value = new_value
             self.set_exits()
         
@@ -199,9 +197,9 @@ class V_Piece(Piece):
     def transform(self, new_value):
         if len(self.possible_positions) > 0:
             self.possible_positions.remove(new_value)
-            
             self.value = new_value
             self.set_exits()
+
     
 class L_Piece(Piece):
     def __init__(self, value: str):
@@ -229,14 +227,18 @@ class L_Piece(Piece):
     def transform(self, new_value):
         if len(self.possible_positions) > 0:
             self.possible_positions.remove(new_value)
-            
             self.value = new_value
             self.set_exits()
+
             
         
 class Board:
     """Representação interna de um tabuleiro de PipeMania."""
-    board = []; # Game Board
+
+    board =  []
+
+    def __init__(self):
+        board = list()
 
     def get_value(self, row: int, col: int) -> Piece:
         """Devolve o valor na respetiva posição do tabuleiro."""
@@ -259,7 +261,7 @@ class Board:
 
         else:
             value.transform(action[2])
-            value.rotations -= 1
+            
         return
         
         if double == False:
@@ -446,21 +448,14 @@ class PipeMania(Problem):
         partir do estado passado como argumento."""
         board = state.board
         dim = len(board.board)
-        
-        self.border_pieces(board)
-        
+                
         actions = []
         for row in range(dim):
             for column in range(dim):
                 piece = board.get_value(row,column)
-                print("Tamanho actions:", len(piece.possible_positions))
                 if len(piece.possible_positions) > 0:
                     for i in piece.possible_positions:
-                        actions.append((row, column, i))
-                        print(i)
-                    
-                    print("AÇÃO, PEÇA:", row, column)
-                    time.sleep(1)
+                        actions.append((row, column, i))                    
                     return actions
         return actions
                     
@@ -473,7 +468,6 @@ class PipeMania(Problem):
         # TODO
         (row, column, value) = action
         board = list()
-        
         for i in range(len(state.board.board)):
             new_line = list()
             for j in range(len(state.board.board[i])):
@@ -488,22 +482,18 @@ class PipeMania(Problem):
                     v = L_Piece(k)
                 
                 new_possible_positions = list()
-                
                 for l in state.board.board[i][j].possible_positions:
                     new_possible_positions.append(l)
                 v.possible_positions = new_possible_positions
                 new_line.append(v)
             board.append(new_line)
 
-        board[row][column].possible_positions = list()
-        
         new_board = Board()
         new_board.board = board
-        
         new_state = PipeManiaState(new_board)
         new_state.board.action(action)
-        print("(0,0): ", board[0][0])
-        print("Peça: ", row, column, "com valor: ", value, "e tamanho:", len(new_state.board.board[row][column].possible_positions))
+        new_board.board[row][column].possible_positions.clear()
+
         self.current = new_state
         return new_state
         
@@ -513,7 +503,7 @@ class PipeMania(Problem):
         um estado objetivo. Deve verificar se todas as posições do tabuleiro
         estão preenchidas de acordo com as regras do problema."""
         # TODO
-        print("Estadoo: ", state.id)
+        print("Estado: ", state.id)
 
         for i in range(len(state.board.board)):
             for j in range(len(state.board.board[i])):
@@ -558,6 +548,7 @@ if __name__ == "__main__":
     
     board = Board.parse_instance()
     problem = PipeMania(board)
+    problem.border_pieces(board)
     goal_node =  depth_first_tree_search(problem)
     print("Is goal?", problem.goal_test(goal_node.state))
     print("State: ", goal_node.state.id)

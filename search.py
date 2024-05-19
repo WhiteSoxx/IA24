@@ -82,7 +82,6 @@ class Node:
         self.action = action
         self.path_cost = path_cost
         self.depth = 0
-        print("Node created")
         if parent:
             self.depth = parent.depth + 1
 
