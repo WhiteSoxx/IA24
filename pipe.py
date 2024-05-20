@@ -234,9 +234,11 @@ class Board:
     """Representação interna de um tabuleiro de PipeMania."""
 
     board =  []
+    dim = 0
 
     def __init__(self):
         board = list()
+        dim = 0
 
     def get_value(self, row: int, col: int) -> Piece:
         """Devolve o valor na respetiva posição do tabuleiro."""
@@ -290,6 +292,7 @@ class Board:
         """
         # TODO
         board = list()
+        dim = 0
         line = stdin.readline().split()
         while(line != []):
             new_line = list()
@@ -304,10 +307,12 @@ class Board:
                     v = L_Piece(line[i])
                 new_line.append(v)
             board.append(new_line)
+            dim += 1
             line = stdin.readline().split()
         
         new_board = Board()
         new_board.board = board
+        new_board.dim = dim
         return new_board
     
     def print(self):
@@ -489,10 +494,11 @@ class PipeMania(Problem):
         self.actions(state)."""
         # TODO
         (row, column, value) = action
+        dim = state.board.dim
         board = list()
-        for i in range(len(state.board.board)):
+        for i in range(dim):
             new_line = list()
-            for j in range(len(state.board.board[i])):
+            for j in range(dim):
                 k = state.board.get_value(i, j).value
                 if(k[0] == "F"):
                     v = F_Piece(k)
@@ -512,6 +518,7 @@ class PipeMania(Problem):
 
         new_board = Board()
         new_board.board = board
+        new_board.dim = state.board.dim
         new_state = PipeManiaState(new_board)
         new_state.board.action(action)
         new_state.board.get_value(row, column).possible_positions.clear()
@@ -527,9 +534,10 @@ class PipeMania(Problem):
         estão preenchidas de acordo com as regras do problema."""
         # TODO
         #print("Estado: ", state.id)
-
-        for i in range(len(state.board.board)):
-            for j in range(len(state.board.board[i])):
+        piece_count = 0
+        
+        for i in range(state.board.dim):
+            for j in range(state.board.dim):
                 testing = state.board.get_value(i, j) #getvalue?
                 for k in range(len(testing.exits)):
                     if(testing.exits[k] == "C"):
@@ -552,6 +560,7 @@ class PipeMania(Problem):
                             return False
                         elif("D" not in state.board.get_value(i, j - 1).exits):
                             return False
+                    
         return True
 
     def h(self, node: Node):
