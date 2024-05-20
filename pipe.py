@@ -494,17 +494,17 @@ class PipeMania(Problem):
                         return False
                     elif(state.board.get_value(i - 1, j).value not in BOT_OPENING):
                         return False
-                elif(testing_value in RIGHT_OPENING):
+                if(testing_value in RIGHT_OPENING):
                     if(state.board.get_value(i, j + 1) == None):
                         return False
                     elif(state.board.get_value(i, j + 1).value not in LEFT_OPENING):
                         return False
-                elif(testing_value in BOT_OPENING):
+                if(testing_value in BOT_OPENING):
                     if(state.board.get_value(i + 1, j) == None):
                         return False
                     elif(state.board.get_value(i + 1, j).value not in TOP_OPENING):
                         return False
-                elif(testing_value in LEFT_OPENING):
+                if(testing_value in LEFT_OPENING):
                     if(state.board.get_value(i, j - 1) == None):
                         return False
                     elif(state.board.get_value(i, j - 1).value not in RIGHT_OPENING):
