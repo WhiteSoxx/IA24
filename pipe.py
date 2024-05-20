@@ -242,7 +242,8 @@ class Board:
 
     def get_value(self, row: int, col: int) -> Piece:
         """Devolve o valor na respetiva posição do tabuleiro."""
-        if row < 0 or row >= len(self.board) or col < 0 or col >= len(self.board[0]):
+        dim = self.dim
+        if row < 0 or row >= dim or col < 0 or col >= dim:
             return None
         else:
             return self.board[row][col]
@@ -292,11 +293,11 @@ class Board:
         """
         # TODO
         board = list()
-        dim = 0
         line = stdin.readline().split()
+        dim = len(line)
         while(line != []):
             new_line = list()
-            for i in range(len(line)):
+            for i in range(dim):
                 if(line[i][0] == "F"):
                     v = F_Piece(line[i])
                 elif(line[i][0] == "B"):
@@ -307,7 +308,6 @@ class Board:
                     v = L_Piece(line[i])
                 new_line.append(v)
             board.append(new_line)
-            dim += 1
             line = stdin.readline().split()
         
         new_board = Board()
@@ -317,13 +317,14 @@ class Board:
     
     def print(self):
         s = ""
-        dim = len(self.board)
+        dim = self.dim
+        
         for i in range(dim):
             for j in range(dim):
                 s += self.board[i][j].value
-                if j <dim-1:
+                if j < dim - 1:
                     s+= '\t'
-            if i<dim-1:
+            if i< dim - 1:
                 s += "\n"
         return s
 
@@ -340,7 +341,7 @@ class PipeMania(Problem):
         self.current = self.initial
         
     def border_pieces(self, board: Board):
-        limit = len(board.board)
+        limit = board.dim
         for i in range(limit):
             for j in range(limit):
                 #canto
@@ -445,7 +446,8 @@ class PipeMania(Problem):
         for i in piece.possible_positions[:]:
             
             if top_piece != None:
-                if "B" in top_piece.exits:
+                top_value = top_piece.value
+                if top_value in BOT_OPENING:
                     if i not in TOP_OPENING:
                         leaking = True
                 else:
@@ -453,7 +455,8 @@ class PipeMania(Problem):
                         leaking = True
 
             if left_piece != None:
-                if "D" in left_piece.exits:
+                left_value = left_piece.value
+                if left_value in RIGHT_OPENING:
                     if i not in LEFT_OPENING:
                         leaking = True
                 else:
@@ -471,7 +474,7 @@ class PipeMania(Problem):
         """Retorna uma lista de ações que podem ser executadas a
         partir do estado passado como argumento."""
         board = state.board
-        dim = len(board.board)
+        dim = board.dim
                 
         actions = []
         for row in range(dim):
@@ -538,28 +541,27 @@ class PipeMania(Problem):
         
         for i in range(state.board.dim):
             for j in range(state.board.dim):
-                testing = state.board.get_value(i, j) #getvalue?
-                for k in range(len(testing.exits)):
-                    if(testing.exits[k] == "C"):
-                        if(state.board.get_value(i - 1, j) == None):
-                            return False
-                        elif("B" not in state.board.get_value(i - 1, j).exits):
-                            return False
-                    elif(testing.exits[k] == "D"):
-                        if(state.board.get_value(i, j + 1) == None):
-                            return False
-                        elif("E" not in state.board.get_value(i, j + 1).exits):
-                            return False
-                    elif(testing.exits[k] == "B"):
-                        if(state.board.get_value(i + 1, j) == None):
-                            return False
-                        elif("C" not in state.board.get_value(i + 1, j).exits):
-                            return False
-                    elif(testing.exits[k] == "E"):
-                        if(state.board.get_value(i, j - 1) == None):
-                            return False
-                        elif("D" not in state.board.get_value(i, j - 1).exits):
-                            return False
+                testing_value = state.board.get_value(i, j).value #getvalue?
+                if(testing_value in TOP_OPENING):
+                    if(state.board.get_value(i - 1, j) == None):
+                        return False
+                    elif(state.board.get_value(i - 1, j).value not in BOT_OPENING):
+                        return False
+                elif(testing_value in RIGHT_OPENING):
+                    if(state.board.get_value(i, j + 1) == None):
+                        return False
+                    elif(state.board.get_value(i, j + 1).value not in LEFT_OPENING):
+                        return False
+                elif(testing_value in BOT_OPENING):
+                    if(state.board.get_value(i + 1, j) == None):
+                        return False
+                    elif(state.board.get_value(i + 1, j).value not in TOP_OPENING):
+                        return False
+                elif(testing_value in LEFT_OPENING):
+                    if(state.board.get_value(i, j - 1) == None):
+                        return False
+                    elif(state.board.get_value(i, j - 1).value not in RIGHT_OPENING):
+                        return False
                     
         return True
 
