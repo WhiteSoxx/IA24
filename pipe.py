@@ -45,16 +45,11 @@ class Piece:
     """Representação interna de uma peça do PipeMania."""
     def __init__(self, value: str):
         self.value = value
-        self.exits = []
-        self.rotations = 3
 
     def rotate(self, clockwise: bool):
         """Roda a peça 90° no sentido dos ponteiros do relógio se
         'clockwise' for True, caso contrário, no sentido contrário."""
         # TODO
-        pass
-    
-    def set_exits(self):
         pass
 
     def rotate180(self):
@@ -69,11 +64,7 @@ class Piece:
 class F_Piece(Piece):
     def __init__(self, value: str):
         super().__init__(value)
-        self.set_exits()
         self.possible_positions = ["FC", "FD", "FB", "FE"]
-        
-    def set_exits(self):
-        self.exits = [self.value[1]]
         
     #mudar
     def rotate(self, clockwise: bool):
@@ -96,8 +87,6 @@ class F_Piece(Piece):
             elif self.value == "FE":
                 self.value = "FB"
 
-        self.set_exits()
-
     def rotate180(self):
         if self.value == "FC":
                 self.value = "FB"
@@ -107,27 +96,14 @@ class F_Piece(Piece):
                 self.value = "FC"
         elif self.value == "FE":
                 self.value = "FD"
-        self.set_exits()
         
     def transform(self, new_value):
         self.value = new_value
-        self.set_exits()
     
 class B_Piece(Piece):
     def __init__(self, value: str):
         super().__init__(value)
-        self.set_exits()
         self.possible_positions = ["BC", "BD", "BB", "BE"]
-        
-    def set_exits(self):
-        if self.value[1] == "C":
-            self.exits = ["E", "C", "D"]
-        elif self.value[1] == "D":
-            self.exits = ["C", "D", "B"]
-        elif self.value[1] == "B":
-            self.exits = ["E", "B", "D"]
-        elif self.value[1] == "E":
-            self.exits = ["C", "E", "B"]
 
     def rotate(self, clockwise: bool):
         if clockwise:
@@ -148,8 +124,6 @@ class B_Piece(Piece):
                 self.value = "BD"
             elif self.value == "BE":
                 self.value = "BB"
-        
-        self.set_exits()
 
     def rotate180(self):
         if self.value == "BC":
@@ -160,29 +134,15 @@ class B_Piece(Piece):
                 self.value = "BC"
         elif self.value == "BE":
                 self.value = "BD"
-        self.set_exits()
         
     def transform(self, new_value):
         self.value = new_value
-        self.set_exits()
         
 class V_Piece(Piece):
     def __init__(self, value: str):
         super().__init__(value)
-        self.set_exits()
         self.possible_positions = ["VC", "VD", "VB", "VE"]
         
-    def set_exits(self):
-        if self.value == "VC":
-            self.exits = ["E", "C"]
-        elif self.value == "VD":
-            self.exits = ["C", "D"]
-        elif self.value == "VB":
-            self.exits = ["B", "D"]
-        elif self.value == "VE":
-            self.exits = ["E", "B"]
-
-    
     def rotate180(self):
         if self.value == "VC":
                 self.value = "VB"
@@ -192,43 +152,30 @@ class V_Piece(Piece):
                 self.value = "VC"
         elif self.value == "VE":
                 self.value = "VD"
-        self.exits
         
     def transform(self, new_value):
         #if len(self.possible_positions) > 0:
             #self.possible_positions.remove(new_value)
         self.value = new_value
-        self.set_exits()
 
-    
+
 class L_Piece(Piece):
     def __init__(self, value: str):
         super().__init__(value)
-        self.set_exits()
         self.rotations = 1
         self.possible_positions = ["LH", "LV"]
         
-    def set_exits(self):
-        if self.value == "LH":
-            self.exits = ["E", "D"]
-        elif self.value == "LV":
-            self.exits = ["C", "B"]
-    
     def rotate(self):
         if self.value == "LH":
             self.value = "LV"
         elif self.value == "LV":
             self.value = "LH"
-        self.set_exits()
     
     def rotate180(self):
         pass
     
     def transform(self, new_value):
-        self.value = new_value
-        self.set_exits()
-
-            
+        self.value = new_value         
         
 class Board:
     """Representação interna de um tabuleiro de PipeMania."""
