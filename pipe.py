@@ -40,7 +40,7 @@ class PipeManiaState:
 
 
 class Piece:
-    possible_positions = []
+    locked = False
 
     """Representação interna de uma peça do PipeMania."""
     def __init__(self, value: str):
@@ -64,76 +64,96 @@ class Piece:
 class F_Piece(Piece):
     def __init__(self, value: str):
         super().__init__(value)
-        self.possible_positions = ["FC", "FD", "FB", "FE"]
         
     #mudar
-    def rotate(self, clockwise: bool):
-        if clockwise:
-            if self.value == "FC":
-                self.value = "FD"
-            elif self.value == "FD":
-                self.value = "FB"
-            elif self.value == "FB":
-                self.value = "FE"
-            elif self.value == "FE":
-                self.value = "FC"
-        else:
-            if self.value == "FC":
-                self.value = "FE"
-            elif self.value == "FD":
-                self.value = "FC"
-            elif self.value == "FB":
-                self.value = "FD"
-            elif self.value == "FE":
-                self.value = "FB"
-
-    def rotate180(self):
-        if self.value == "FC":
-                self.value = "FB"
-        elif self.value == "FD":
-                self.value = "FE"
-        elif self.value == "FB":
-                self.value = "FC"
-        elif self.value == "FE":
-                self.value = "FD"
+    def possible_positions(self, board, row: int, col: int):
+        possible_positions = []
+        top_piece = board.get_value(row - 1, col)
+        left_piece = board.get_value(row, col - 1)
         
+        if top_piece != None and left_piece != None:
+            top_value = top_piece.value
+            left_value = left_piece.value
+            
+            if top_value in BOT_OPENING and left_value in RIGHT_OPENING:
+                possible_positions.clear()
+                return possible_positions
+            elif top_value in BOT_OPENING:
+                possible_positions.append("FC")
+                return possible_positions
+            elif left_value in RIGHT_OPENING:
+                possible_positions.append("FE")
+                return possible_positions
+            else:
+                possible_positions.append("FB")
+                possible_positions.append("FD")
+                return possible_positions
+            
+        if top_piece != None:
+            top_value = top_piece.value
+            if top_value in BOT_OPENING:
+                possible_positions.append("FC")
+            else: #top não tem abertura nem a esquerda
+                possible_positions.append("FB")
+                possible_positions.append("FD")
+            return possible_positions
+        
+        elif left_piece != None:
+            left_value = left_piece.value
+            if left_value in RIGHT_OPENING:
+                possible_positions.append("FE")
+            else: #top não tem abertura nem a esquerda
+                possible_positions.append("FB")
+                possible_positions.append("FD")
+            return possible_positions
+        
+        elif top_piece == None and left_piece == None: #FIXME ELSE?? EM VEZ DE ELIF?
+            possible_positions.append("FB")
+            possible_positions.append("FD")
+        
+        return possible_positions
+
     def transform(self, new_value):
         self.value = new_value
     
 class B_Piece(Piece):
     def __init__(self, value: str):
         super().__init__(value)
-        self.possible_positions = ["BC", "BD", "BB", "BE"]
 
-    def rotate(self, clockwise: bool):
-        if clockwise:
-            if self.value == "BC":
-                self.value = "BD"
-            elif self.value == "BD":
-                self.value = "BB"
-            elif self.value == "BB":
-                self.value = "BE"
-            elif self.value == "BE":
-                self.value = "BC"
-        else:
-            if self.value == "BC":
-                self.value = "BE"
-            elif self.value == "BD":
-                self.value = "BC"
-            elif self.value == "BB":
-                self.value = "BD"
-            elif self.value == "BE":
-                self.value = "BB"
-
-    def rotate180(self):
-        if self.value == "BC":
-                self.value = "BB"
-        elif self.value == "BD":
-                self.value = "BE"
-        elif self.value == "BB":
-                self.value = "BC"
-        elif self.value == "BE":
-                self.value = "BD"
+    def possible_positions(self, board, row: int, col: int):
+        possible_positions = []
+        top_piece = board.get_value(row - 1, col)
+        left_piece = board.get_value(row, col - 1)
+        
+        if top_piece != None and left_piece != None:
+            top_value = top_piece.value
+            left_value = left_piece.value
+            
+            if top_value in BOT_OPENING and left_value in RIGHT_OPENING:
+                possible_positions.append("BC")
+                possible_positions.append("BE")
+                return possible_positions
+            elif top_value in BOT_OPENING:
+                possible_positions.append("BD")
+                return possible_positions
+            elif left_value in RIGHT_OPENING:
+                possible_positions.append("BB")
+                return possible_positions
+            return possible_positions #FIXME
+            
+        if top_piece != None:
+            top_value = top_piece.value
+            if top_value in BOT_OPENING:
+                possible_positions.append("BD")
+            return possible_positions
+        
+        elif left_piece != None:
+            left_value = left_piece.value
+            if left_value in RIGHT_OPENING:
+                possible_positions.append("BB")
+            return possible_positions
+        
+        return possible_positions
         
     def transform(self, new_value):
         self.value = new_value
@@ -141,38 +161,92 @@ class B_Piece(Piece):
 class V_Piece(Piece):
     def __init__(self, value: str):
         super().__init__(value)
-        self.possible_positions = ["VC", "VD", "VB", "VE"]
         
-    def rotate180(self):
-        if self.value == "VC":
-                self.value = "VB"
-        elif self.value == "VD":
-                self.value = "VE"
-        elif self.value == "VB":
-                self.value = "VC"
-        elif self.value == "VE":
-                self.value = "VD"
+    def possible_positions(self, board, row: int, col: int):
+        possible_positions = []
+        top_piece = board.get_value(row - 1, col)
+        left_piece = board.get_value(row, col - 1)
+        
+        if top_piece != None and left_piece != None:
+            top_value = top_piece.value
+            left_value = left_piece.value
+            
+            if top_value in BOT_OPENING and left_value in RIGHT_OPENING:
+                possible_positions.append("VC")
+                return possible_positions
+            elif top_value in BOT_OPENING:
+                possible_positions.append("VD")
+                return possible_positions
+            elif left_value in RIGHT_OPENING:
+                possible_positions.append("VE")
+                return possible_positions
+            else:
+                possible_positions.append("VB")
+                return possible_positions
+            
+        if top_piece != None:
+            top_value = top_piece.value
+            if top_value in BOT_OPENING:
+                possible_positions.append("VD")
+            else: #top não tem abertura nem a esquerda
+                possible_positions.append("VB")
+            return possible_positions
+        
+        elif left_piece != None:
+            left_value = left_piece.value
+            if left_value in RIGHT_OPENING:
+                possible_positions.append("VE")
+            else: #top não tem abertura nem a esquerda
+                possible_positions.append("VB")
+            return possible_positions
+        
+        elif top_piece == None and left_piece == None:
+            possible_positions.append("VB")
+        
+        return possible_positions
         
     def transform(self, new_value):
-        #if len(self.possible_positions) > 0:
-            #self.possible_positions.remove(new_value)
+        #if len(possible_positions) > 0:
+            #possible_positions.remove(new_value)
         self.value = new_value
 
 
 class L_Piece(Piece):
     def __init__(self, value: str):
         super().__init__(value)
-        self.rotations = 1
-        self.possible_positions = ["LH", "LV"]
         
-    def rotate(self):
-        if self.value == "LH":
-            self.value = "LV"
-        elif self.value == "LV":
-            self.value = "LH"
-    
-    def rotate180(self):
-        pass
+    def possible_positions(self, board, row: int, col: int):
+        possible_positions = []
+        top_piece = board.get_value(row - 1, col)
+        left_piece = board.get_value(row, col - 1)
+        
+        if top_piece != None and left_piece != None:
+            top_value = top_piece.value
+            left_value = left_piece.value
+            
+            if top_value in BOT_OPENING and left_value in RIGHT_OPENING:
+                return possible_positions
+            elif top_value in BOT_OPENING:
+                possible_positions.append("LV")
+                return possible_positions
+            elif left_value in RIGHT_OPENING:
+                possible_positions.append("LH")
+                return possible_positions
+            return possible_positions
+            
+        if top_piece != None:
+            top_value = top_piece.value
+            if top_value in BOT_OPENING:
+                possible_positions.append("LV")
+            return possible_positions
+        
+        elif left_piece != None:
+            left_value = left_piece.value
+            if left_value in RIGHT_OPENING:
+                possible_positions.append("LH")
+            return possible_positions
+        
+        return possible_positions
     
     def transform(self, new_value):
         self.value = new_value         
@@ -210,22 +284,20 @@ class Board:
             value.transform(action[2])
             
         return
-       
-        
 
-    def adjacent_vertical_values(self, row: int, col: int) -> (str, str):
-        """Devolve os valores imediatamente acima e abaixo,
-        respectivamente."""
-        v1 = self.get_value(row - 1, col)
-        v2 = self.get_value(row + 1, col)
-        return (v1, v2)
+    # def adjacent_vertical_values(self, row: int, col: int) -> (str, str):
+    #     """Devolve os valores imediatamente acima e abaixo,
+    #     respectivamente."""
+    #     v1 = self.get_value(row - 1, col)
+    #     v2 = self.get_value(row + 1, col)
+    #     return (v1, v2)
 
-    def adjacent_horizontal_values(self, row: int, col: int) -> (str, str):
-        """Devolve os valores imediatamente à esquerda e à direita,
-        respectivamente."""
-        v1 = self.get_value(row, col - 1)
-        v2 = self.get_value(row, col + 1)
-        return (v1, v2)
+    # def adjacent_horizontal_values(self, row: int, col: int) -> (str, str):
+    #     """Devolve os valores imediatamente à esquerda e à direita,
+    #     respectivamente."""
+    #     v1 = self.get_value(row, col - 1)
+    #     v2 = self.get_value(row, col + 1)
+    #     return (v1, v2)
 
     @staticmethod
     def parse_instance():
@@ -427,13 +499,20 @@ class PipeMania(Problem):
         for row in range(dim):
             for column in range(dim):
                 piece = board.get_value(row,column)
-                
-                if len(piece.possible_positions) > 0:
-                    self.fools_errand(board, row, column)
-                    for i in piece.possible_positions:
-                        actions.append((row, column, i))
-                    piece.possible_positions.clear()
-                    return actions
+                if not piece.locked:
+                    possible_positions = piece.possible_positions(board, row, column)
+                    piece.locked = True
+                    if len(possible_positions) > 0:
+                    #self.fools_errand(board, row, column)
+                        for i in possible_positions:
+                            actions.append((row, column, i))
+                        return actions
+                # if len(piece.possible_positions) > 0:
+                #     self.fools_errand(board, row, column)
+                #     for i in piece.possible_positions:
+                #         actions.append((row, column, i))
+                #     piece.possible_positions.clear()
+                #    return actions
         return actions
                     
 
@@ -458,11 +537,13 @@ class PipeMania(Problem):
                     v = V_Piece(k)
                 elif(k[0] == "L"):
                     v = L_Piece(k)
+                if state.board.get_value(i, j).locked:
+                    v.locked = True
                 
-                new_possible_positions = []
-                for l in state.board.board[i][j].possible_positions:
-                    new_possible_positions.append(l)
-                v.possible_positions = new_possible_positions
+                # new_possible_positions = []
+                # for l in state.board.board[i][j].possible_positions:
+                #     new_possible_positions.append(l)
+                # v.possible_positions = new_possible_positions
                 new_line.append(v)
             board.append(new_line)
 
@@ -471,7 +552,7 @@ class PipeMania(Problem):
         new_board.dim = state.board.dim
         new_state = PipeManiaState(new_board)
         new_state.board.action(action)
-        new_state.board.get_value(row, column).possible_positions.clear()
+        new_state.board.get_value(row, column).locked = True
         
 
         self.current = new_state
@@ -529,7 +610,7 @@ if __name__ == "__main__":
     
     board = Board.parse_instance()
     problem = PipeMania(board)
-    problem.border_pieces(board)
+    #problem.border_pieces(board)
     goal_node = depth_first_tree_search(problem)
     #print("Is goal?", problem.goal_test(goal_node.state))
     #print("State: ", goal_node.state.id)
